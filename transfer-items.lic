@@ -11,10 +11,15 @@ class ItemTransfer
       [
         { name: 'source', regex: /^[A-z\.\s\-']+$/i, variable: true, description: 'Source container' },
         { name: 'destination', regex: /^[A-z\.\s\-']+$/i, variable: true, description: 'Destination container' },
-        { name: 'noun', regex: /^[A-z\.\s\-]+$/i, optional: true, variable: true, description: 'If specified, only items with this noun will be transferred.'}
+        { name: 'noun', regex: /^[A-z\.\s\-]+$/i, optional: true, variable: true, description: 'If specified, only items with this noun will be transferred.'},
+        { name: 'unsafe', regex: /^[A-z\.\s\-]+$/i, optional: true, variable: true, description: 'Use this if the destination container is not on self, e.g. vault or container on ground.'}
       ]
     ]
     args = parse_args(arg_definitions)
+
+    if args.unsafe
+      @unsafe = true
+    end
 
     # Invisibility sometimes impedes getting/stowing items.
     DRC.release_invisibility
@@ -22,7 +27,7 @@ class ItemTransfer
     transfer_items(args.source, args.destination, args.noun)
   end
 
-  def transfer_items(source, destination, noun)
+  def transfer_items(source, destination, noun, unsafe)
     # If container is very full then LOOK may not list all of them.
     # If you're moving a specific item, then sort those to the top
     # to increase chances we find and move all of them in one go.
@@ -55,12 +60,18 @@ class ItemTransfer
   end
 
   def move_item(item, source, destination)
-    # Attempt to put the item in the destination container.
-    unless DRCI.put_away_item?(item, destination)
-      DRC.message("Unable to put #{item} in your #{destination}. The container may be full or too small to hold the item.")
-      # Return item to source container.
-      # Loop will try to transfer the next item in the list.
-      DRCI.put_away_item?(item, source)
+    if @unsafe
+      # Attempt to put the item in the destination container which is NOT on your person.
+      unless DRCI.put_away_item_unsafe?(item, destination)
+      end
+    else
+      # Attempt to put the item in the destination container.
+      unless DRCI.put_away_item?(item, destination)
+      end
+    DRC.message("Unable to put #{item} in your #{destination}. The container may be full or too small to hold the item.")
+    # Return item to source container.
+    # Loop will try to transfer the next item in the list.
+    DRCI.put_away_item?(item, source)
     end
   end
 
