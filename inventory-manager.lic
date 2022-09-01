@@ -175,14 +175,15 @@ class InventoryManager
     total_found = 0
     @item_data.each do |k, v|
       total_found = 0
-      message "Checking #{k.to_s}:"
+      echo
+      # DRC.message "Checking #{k.to_s}:"
       v.each { |data|
         if data.include?(item)
           total_found += 1
-          message "Match #{total_found}): #{data}"
+          DRC.message "#{k.to_s} - #{total_found}): #{data}"
         end
       }
-      message "Found #{total_found} matches on #{k.to_s}\n"
+      # DRC.message "Found #{total_found} matches on #{k.to_s}"
     end
   end
 
